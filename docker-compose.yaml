@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  nerfstudio:
+    build: .
+    image: floorplan-nerf:latest
+    container_name: floorplan-pipeline
+    runtime: nvidia  # Requires NVIDIA Container Toolkit
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - CUDA_VISIBLE_DEVICES=0
+    volumes:
+      # Mount your local data directory
+      - ./data:/workspace/data
+      # Mount output directory
+      - ./output:/workspace/output
+      # Mount scripts (for development)
+      - ./floorplan_pipeline_docker.py:/workspace/scripts/floorplan_pipeline.py
+    ports:
+      - "7007:7007"  # Nerfstudio viewer
+    working_dir: /workspace/scripts
+    command: python floorplan_pipeline.py
+    shm_size: '8gb'  # Shared memory for PyTorch
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
